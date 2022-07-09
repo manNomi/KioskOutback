@@ -26,7 +26,6 @@ class dialogClass() : DialogFragment(){
             builder.apply {
                 setNegativeButton("확인",
                     DialogInterface.OnClickListener { _, _ ->
-                        Log.d("qwe","123")
                     }
                 )
             }

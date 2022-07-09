@@ -12,16 +12,17 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.kiosckoutback.Activity.DataFromFragment
-import com.example.kiosckoutback.jsonDB.DataBase
+import com.example.kiosckoutback.DataBase
 import com.example.kiosckoutback.R
 import com.example.kiosckoutback.dialogClass
 
 class WineFragment : Fragment() {
 
     private var total=arrayOf(0,0,0,0)
-
     lateinit var dataList:ArrayList<DataBase.menu>
     val db= DataBase
+    lateinit var newFragment : dialogClass
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val fragment = inflater.inflate(R.layout.main_page_fragment_steak, container, false)
@@ -43,7 +44,6 @@ class WineFragment : Fragment() {
         showDialog()
         if (newFragment.isCancelable){
             insertEvent(number)
-            Log.d("qwe","1235")
         }
     }
 
@@ -56,7 +56,6 @@ class WineFragment : Fragment() {
         dataInterface.sendData("pasta",dataList[number].name,total[number].toString(),dataList[number].price)
     }
 
-    lateinit var newFragment : dialogClass
 
     fun showDialog() {
         newFragment= dialogClass()

@@ -51,27 +51,24 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-
-
     override fun onUserLeaveHint () {
         super.onUserLeaveHint ()
-//        intentService= Intent(this, MyService::class.java)
         serviceBind()
         ContextCompat.startForegroundService(this, intentService)
     }
 
-    override fun onRestart() {
-        super.onRestart()
-        cartClass= myService?.bindServiceReturn()
-        intentService.putExtra("stop","stop")
-        ContextCompat.startForegroundService(this, intentService)
-        serviceUnBind()
+    override fun onResume() {
+        super.onResume()
+        if (isService==true) {
+            cartClass = myService?.bindServiceReturn()
+            intentService.putExtra("stop", "stop")
+            ContextCompat.startForegroundService(this, intentService)
+            serviceUnBind()
+        }
     }
 
     fun serviceBind()
     {
-//        Log.d("cart",cartClass.cartSteak[0].name)
-        Log.d("cart","cart page hit")
         intentService= Intent(this, MyService::class.java)
         intentService.putExtra("DATA",cartClass)
         bindService(intentService, connection, Context.BIND_AUTO_CREATE)
@@ -85,14 +82,10 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.cart_page_activity)
         cartClass=intent.getSerializableExtra("DATA") as CartClass
-        Log.d("cart",cartClass.cartSteak.toString())
         totalCal()
         initCart()
         initEvent()
@@ -106,15 +99,11 @@ class CartActivity : AppCompatActivity() {
     fun initEvent() {
         val back_btn = findViewById<Button>(R.id.backBtn)
         back_btn.setOnClickListener{
-//            cartClass= myService?.bindServiceReturn()
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("index", "true")
             intent.putExtra("cart",cartClass)
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION)
             startActivity(intent)
-
-
-//            finish()
         }
         val payBtn=findViewById<Button>(R.id.payBtn)
         payBtn.setOnClickListener{
@@ -132,7 +121,6 @@ class CartActivity : AppCompatActivity() {
     }
 
     fun initCart(){
-
         val linearLayout = findViewById<LinearLayout>(R.id.customCart)
         val viewArraySteak= mutableListOf<TextView>()
         for (index in 0 until cartClass.cartSteak.size){
@@ -145,9 +133,7 @@ class CartActivity : AppCompatActivity() {
             customLinear.findViewById<Button>(R.id.minus).setOnClickListener{msEvent(index,viewArraySteak,linearLayout,customLinear,"steak")}
         linearLayout.addView(customLinear)
         }
-
         val viewArrayPasta= mutableListOf<TextView>()
-
         for (index in 0 until cartClass.cartPasta.size){
             val customLinear = layoutInflater.inflate(R.layout.custom_image_btn, linearLayout, false)
             customLinear.findViewById<TextView>(R.id.cartName).text = cartClass.cartPasta[index].name
@@ -160,7 +146,6 @@ class CartActivity : AppCompatActivity() {
         }
 
         val viewArrayWine= mutableListOf<TextView>()
-
         for (index in 0 until cartClass.cartWine.size){
             val customLinear = layoutInflater.inflate(R.layout.custom_image_btn, linearLayout, false)
             customLinear.findViewById<TextView>(R.id.cartName).text = cartClass.cartWine[index].name
@@ -231,7 +216,5 @@ class CartActivity : AppCompatActivity() {
             }
             totalCal()
         }
-
-
     }
 }

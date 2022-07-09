@@ -7,7 +7,6 @@ import android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION
 import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.Image
 import android.os.*
 import android.util.Log
 import android.widget.Button
@@ -20,8 +19,7 @@ import com.example.kiosckoutback.Fragment.SteakFragment
 import com.example.kiosckoutback.Fragment.WineFragment
 import com.example.kiosckoutback.MyService
 import com.example.kiosckoutback.R
-import com.example.kiosckoutback.jsonDB.DataBase
-import java.io.InputStream
+import com.example.kiosckoutback.DataBase
 
 interface DataFromFragment{
     fun sendData(receive_type:String,receive_name:String,receive_count: String,receive_pay:String)
@@ -34,7 +32,16 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
     lateinit var intentService:Intent
     lateinit var cartClass: CartClass
 
+    lateinit var db: DataBase
+    lateinit var pastaPicture:MutableList<Bitmap>
+    lateinit var steakPicture:MutableList<Bitmap>
+    lateinit var winePicture:MutableList<Bitmap>
+
+
     private var doubleBackToExit = false
+
+    var isService = false
+
     override fun onBackPressed() {
         if (doubleBackToExit) {
             finishAffinity()
@@ -51,7 +58,6 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
         Handler(Looper.getMainLooper()).postDelayed(function, millis)
     }
 
-    var isService = false
     var connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
             val binder = service as MyService.MyBinder
@@ -63,8 +69,6 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
         }
     }
 
-
-
     override fun onUserLeaveHint () {
         super.onUserLeaveHint ()
 //        intentService= Intent(this, MyService::class.java)
@@ -72,18 +76,28 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
         ContextCompat.startForegroundService(this, intentService)
     }
 
-    override fun onRestart() {
-        super.onRestart()
-        cartClass= myService?.bindServiceReturn()
-        intentService.putExtra("stop","stop")
-        ContextCompat.startForegroundService(this, intentService)
-        serviceUnBind()
+    override fun onResume() {
+        super.onResume()
+        if (isService==true) {
+            cartClass = myService?.bindServiceReturn()
+            intentService.putExtra("stop", "stop")
+            ContextCompat.startForegroundService(this, intentService)
+            serviceUnBind()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (isService==true) {
+            cartClass = myService?.bindServiceReturn()
+            intentService.putExtra("stop", "stop")
+            ContextCompat.startForegroundService(this, intentService)
+            serviceUnBind()
+        }
     }
 
     fun serviceBind()
     {
-//        Log.d("cart",cartClass.cartSteak[0].name)
-        Log.d("cart","main page hit")
         intentService= Intent(this, MyService::class.java)
         intentService.putExtra("DATA",cartClass)
         bindService(intentService, connection, Context.BIND_AUTO_CREATE)
@@ -105,12 +119,10 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
     ) {
         cartClass.addCart(receive_type, receive_name, receive_count, receive_pay)
     }
+
         override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         initMenu()
-
-
             setContentView(R.layout.main_page_activity)
         var sequance = intent.getStringExtra("index")
         if (sequance != null) {
@@ -125,9 +137,7 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
     fun firstInitStaek() {
         val fragmentSteak = SteakFragment()
         val bundle = Bundle()
-
         bundle.putSerializable("cart", cartClass)
-
         fragmentSteak.arguments = bundle
         supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragmentSteak)
             .commit()
@@ -136,10 +146,8 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
     fun initEvent() {
         val steak_btn = findViewById<Button>(R.id.steakBtn)
         steak_btn.setOnClickListener {
-
             val fragmentSteak = SteakFragment()
             val bundle = Bundle()
-
             bundle.putSerializable("cart", cartClass)
             fragmentSteak.arguments = bundle
             supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragmentSteak)
@@ -150,9 +158,7 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
         pasta_btn.setOnClickListener {
             val fragmentPasta = PastaFragment()
             val bundle = Bundle()
-
             bundle.putSerializable("cart", cartClass)
-
             fragmentPasta.arguments = bundle
             supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragmentPasta)
                 .commit()
@@ -162,7 +168,6 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
         wine_btn.setOnClickListener {
             val fragmentWine = WineFragment()
             val bundle = Bundle()
-
             bundle.putSerializable("cart", cartClass)
             fragmentWine.arguments = bundle
             supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragmentWine)
@@ -171,51 +176,39 @@ class MainActivity() : AppCompatActivity(),DataFromFragment {
 
         val cart_btn = findViewById<Button>(R.id.cartMoveBtn)
         cart_btn.setOnClickListener {
-
             val intent = Intent(this, CartActivity::class.java)
-
             intent.putExtra("DATA", cartClass)
             intent.addFlags(FLAG_ACTIVITY_NO_USER_ACTION)
             startActivity(intent)
-//            finish()
         }
     }
 
-    lateinit var db:DataBase
-    lateinit var pastaPicture:MutableList<Bitmap>
-    lateinit var steakPicture:MutableList<Bitmap>
-    lateinit var winePicture:MutableList<Bitmap>
-
     fun initMenu(){
         val jsonString = assets.open("data.json").reader().readText()
-        db=DataBase
+        db= DataBase
         db.initMenu(jsonString)
         initPicture()
     }
 
     fun initPicture(){
         pastaPicture=mutableListOf<Bitmap>()
-
         for (index  in 0 until db.menuPasta.size) {
             val image = assets.open(db.menuPasta[index].image)
             var bitmap: Bitmap = BitmapFactory.decodeStream(image)
             pastaPicture.add(bitmap)
         }
-
         steakPicture= mutableListOf<Bitmap>()
         for (index  in 0 until db.menuSteak.size) {
             val image = assets.open(db.menuSteak[index].image)
             var bitmap: Bitmap = BitmapFactory.decodeStream(image)
             steakPicture.add(bitmap)
         }
-
         winePicture= mutableListOf<Bitmap>()
         for (index  in 0 until db.menuWine.size) {
             val image = assets.open(db.menuWine[index].image)
             var bitmap: Bitmap = BitmapFactory.decodeStream(image)
             winePicture.add(bitmap)
         }
-
         db.initImage(pastaPicture,steakPicture,winePicture)
 
     }

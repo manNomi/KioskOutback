@@ -8,7 +8,6 @@ class CartClass(
     var cartSteak= mutableListOf<List>()
     var cartPasta= mutableListOf<List>()
     var cartWine= mutableListOf<List>()
-
     var total=0
 
 //    serializable 안에 클래스가 있으면 그 객체도 serializable을 선언해줘야함
@@ -19,7 +18,6 @@ class CartClass(
         ): Serializable
 
     fun addCart(type:String,name: String,count:String,price:String){
-
         if (type=="steak"){
             var cart=List(name, count, price)
             var sequence=0
@@ -75,7 +73,6 @@ class CartClass(
         for (index in 0 until cartWine.size){
             total+=cartWine[index].count.toInt()*cartWine[index].price.toInt()
         }
-
         return total
     }
 }

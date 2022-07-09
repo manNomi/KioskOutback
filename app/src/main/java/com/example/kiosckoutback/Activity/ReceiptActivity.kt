@@ -13,8 +13,9 @@ import com.example.kiosckoutback.R
 
 
 class ReceiptActivity : AppCompatActivity() {
-    var cart= mutableListOf<Array<String>>()
     private var doubleBackToExit = false
+    lateinit var cartClass: CartClass
+
     override fun onBackPressed() {
         if (doubleBackToExit) {
             finishAffinity()
@@ -31,23 +32,10 @@ class ReceiptActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed(function, millis)
     }
 
-    lateinit var cartClass: CartClass
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.receipt_page_activity)
-
-//        var sequance=intent.getStringExtra("index")
-//        var total=intent.getStringExtra("total")
-//        for (index in 0 until sequance!!.toInt()) {
-//            var getCart=intent.getStringArrayExtra("cart${index}")
-//            cart.add(getCart!!)
-//        }
-
         cartClass=intent.getSerializableExtra("cart")as CartClass
-
-
-
         initRecipt()
         initBtn()
     }
